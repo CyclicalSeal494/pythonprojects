@@ -1,0 +1,177 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import csv
+from tabulate import tabulate
+
+def firstInput():
+  data = [] 
+  with open("weather_data.csv") as csvfile:
+    reader = csv.reader(csvfile)
+    for row in reader:
+      data.append(row)
+
+  cityCol = [x[1] for x in data]
+  inputUserReturn = []
+  monthList = {"January" : 1, "Febuary" : 2, "March" : 3, "April" : 4, "May" : 5, "June" : 6, "July" : 7, "August" : 8, "September" : 9, "October" : 10, "November" : 11, "December" : 12}
+  isValid1 = False
+  isValid2 = False
+  while isValid1 == False:
+    userCity = input('Enter a city to get information for: ')
+    if userCity in cityCol:
+      inputUserReturn.append(userCity)
+      isValid1 = True
+      print (" ")
+    else:
+      print("The city provided does not have data recorded.")
+  while isValid2 == False:
+    userMonth = input('Enter a month to get information for: ')
+    if userMonth in monthList:
+      inputUserReturn.append(monthList[userMonth])
+      isValid2 = True
+      print (" ")
+    else:
+      print("The Month provided does not have data recorded.")
+  inputUserReturn.append("temperature")
+  return inputUserReturn
+
+
+def graphDisplay(inputList, city):
+  if (inputList[2] == "windspeed"):
+    city.plot('year', "avgWindGustSpeed", label = "Avg Windspeed")
+  if (inputList[2] == "rainfall"):
+    city.plot('year', "avgRainfall", label = "Avg Rainfall")  
+  if (inputList[2] == "temperature"):
+    city.plot(x = 'year', y = ["avgMaxTemp", "avgMinTemp"], label = ["Max Temp", "Min Temp"])
+  plt.show(block=False)
+
+"""
+def graphDisplayTest():
+  data = pd.read_csv('weather_data.csv')
+  is_city = data['location'] == "Adelaide"
+  city = data[is_city]
+  city['yearMonth'] = pd.to_datetime(city['yearMonth'], format='%Y-%m')
+  city.plot(x='yearMonth', y=["avgWindGustSpeed", "avgRainfall"], label = ["Avg Windspeed", "Avg Rainfall"])
+  plt.show()
+"""
+
+
+def tableDisplay(inputList):
+  df_Australia = pd.read_csv('weather_data.csv')
+  df_Australia.insert(len(df_Australia.columns), 'date', pd.to_datetime(df_Australia['yearMonth'], format='%Y-%m'))
+  df_Australia.insert(len(df_Australia.columns), 'year', ['date'].dt.year)
+  df_Australia.insert(len(df_Australia.columns), 'month', df_Australia['date'].dt.month)
+  df_City = df_Australia[(df_Australia.location == inputList[0]) & (df_Australia.month == inputList[1])][['year','avgWindGustSpeed', 'avgMaxTemp', 'avgMinTemp', 'avgRainfall']]
+  print(tabulate(city, headers=["Year","Wind Speed", "Max Temp", "Min Temp", "Rainfall"], showindex="never"))
+  return df_City
+ 
+
+
+def clothingAdvice(inputUserReturn, city):
+
+  temp = round(city['avgMinTemp'].mean(),2)
+  wind = round(city['avgWindGustSpeed'].mean(),2)
+  rain = round(city['avgRainfall'].mean(),2)
+  def tempClothing():
+    print("Average temperature is: " + str(temp) + " degree centigrade")
+    if temp <= 13:
+      print("1. Temparature would be cold. Pack a winter jacket, scarf, beanie and gloves.")
+      print(" ")
+    elif temp >= 30:
+      print("1. Temperature would be hot. Pack a hat and sunglasses.")
+      print(" ")
+    else:
+      print("1. Temperature wuld be moderate. Pack light sweatshirt and a hat.")
+      print(" ")
+  def rainClothing():
+    print("Average rainfall is: " + str(rain) + "mm")
+    if rain <= 1:
+      print("2. There is a chance of light rain. Bring an umbrella with you when you go out.")
+      print(" ")
+    elif rain >=4:
+      print("2. There is a chance of heavy rain. Pack a rain coat and boots.")
+      print(" ")
+    else:
+      print("2. There is a chance of moderate rain. Pack a rain coat.")
+      print(" ")
+  def windClothing():
+    print("Average wind speed is: " + str(wind) + "km")
+    if wind >= 10:
+      print("3. It would be windy. Pack a WindBreaker.")
+      print(" ")
+  
+  print(" ")
+  print ("Clothes packing adivce: " + str(inputUserReturn[0]) + ", Month: " + str(inputUserReturn[1]))
+  print(" ")
+  tempClothing()
+  rainClothing()
+  windClothing()
+
+
+def updateData(city):
+  data = [] 
+  with open("weather_data.csv") as csvfile:
+    reader = csv.reader(csvfile)
+    for row in reader:
+      data.append(row)
+  updateList = []
+  updateDone = False
+  while updateDone == False:
+    update = input("Do you want to view addtional details? (Yes/No): ")
+    print (" ")
+    if (update == "Yes"):
+      cityCol = [x[1] for x in data]
+      monthList = {"January" : 1, "Febuary" : 2, "March" : 3, "April" : 4, "May" : 5, "June" : 6, "July" : 7, "August" : 8, "September" : 9, "October" : 10, "November" : 11, "December" : 12}
+      graphList = ["temperature", "rainfall", "windspeed"]
+      isValid1 = False
+      isValid2 = False
+      isValid3 = False
+      while isValid1 == False:
+        userCity = input('Enter a city to get information for: ')
+        print (" ")
+        if userCity in cityCol:
+          updateList.append(userCity)
+          isValid1 = True
+        else:
+          print("The city provided does not have data recorded.")
+      while isValid2 == False:
+        userMonth = input('Enter a month to get information for: ')
+        print (" ")
+        if userMonth in monthList:
+          updateList.append(monthList[userMonth])
+          isValid2 = True
+        else:
+          print("The Month provided does not have data recorded.")
+      print ("What do you want your graph to show?:")
+      print ("temperature")
+      print ("rainfall")
+      print ("windspeed")
+      while isValid3 == False:
+        graphInput = input('Enter a graph to get information for: ')
+        print (" ")
+        if graphInput in graphList:
+          updateList.append(graphInput)
+          isValid3 = True
+        else:
+          print("The graph provided does not have data recorded.")
+
+      graphDisplay(updateList, city)
+      tableDisplay(updateList)
+      clothingAdvice(updateList, city)  
+
+    elif update == "No":
+      endProgram = True
+      updateDone = True
+      return endProgram   
+
+
+endProgram = False
+
+while endProgram == False:
+  inputUserReturn = firstInput()
+  city = tableDisplay(inputUserReturn)
+  graphDisplay(inputUserReturn, city)
+  clothingAdvice(inputUserReturn, city)
+  endProgram = updateData(city)
+print ("The Program has ended")
+
+  
